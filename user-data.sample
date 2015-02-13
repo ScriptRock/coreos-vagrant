@@ -1,9 +1,7 @@
 #cloud-config
-
----
 coreos:
   etcd:
-    discovery: https://discovery.etcd.io/6bb97f637d2eb76b23177c966fa0cd52
+    discovery: https://discovery.etcd.io/7554e4dc36c8d779b071cb73e801dab0
     addr: $private_ipv4:4001
     peer-addr: $private_ipv4:7001
   fleet:
@@ -27,40 +25,18 @@ coreos:
 
       [Install]
       WantedBy=sockets.target
-  - name: fleet-tcp.socket
-    command: start
-    enable: true
-    content: |
-      [Unit]
-      Description=Fleet Socket for the API
-
-      [Socket]
-      ListenStream=5050
-      Service=fleet.service
-      BindIPv6Only=both
-
-      [Install]
-      WantedBy=sockets.target
-        command: start
-        enable: true
-        content: |
-          [Unit]
-          Description=Fleet Socket for the API
-
-          [Socket]
-          ListenStream=5050
-          Service=fleet.service
-          BindIPv6Only=both
-
-          [Install]
-          WantedBy=sockets.target
-  write_files:
-  - path: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
-    content: "[Service]\nEnvironment=DOCKER_OPTS='--insecure-registry=\"10.0.0.0/16\"'
-      \     \n"
-  - path: /etc/systemd/system/docker.service.d/increase-ulimit.conf
-    owner: core:core
-    permissions: 420
-    content: |-
-      [Service]
-      LimitMEMLOCK=infinity
+write_files:
+- path: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
+  content: |
+    [Service]
+    Environment=DOCKER_OPTS='--insecure-registry="10.0.0.0/16"'
+- path: /etc/systemd/system/fleet.socket.d/30-ListenStream.conf
+  content: |
+    [Socket]
+    ListenStream=5050
+- path: /etc/systemd/system/docker.service.d/increase-ulimit.conf
+  owner: core:core
+  permissions: 420
+  content: |
+    [Service]
+    LimitMEMLOCK=infinity
