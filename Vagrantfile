@@ -43,7 +43,7 @@ end
 
 Vagrant.configure("2") do |config|
   # always use Vagrants insecure key
-  config.ssh.insert_key = false
+  config.ssh.insert_key = true
 
   config.vm.box = "coreos-%s" % $update_channel
   config.vm.box_version = ">= 308.0.1"
@@ -97,6 +97,10 @@ Vagrant.configure("2") do |config|
         config.vm.network "forwarded_port", guest: 2375, host: ($expose_docker_tcp + i - 1), auto_correct: true
       end
 
+      if $expose_fleet_tcp
+        config.vm.network "forwarded_port", guest: 5050, host: ($expose_fleet_tcp + i - 1), auto_correct: true
+      end
+
       ["vmware_fusion", "vmware_workstation"].each do |vmware|
         config.vm.provider vmware do |v|
           v.gui = vm_gui
@@ -113,9 +117,6 @@ Vagrant.configure("2") do |config|
 
       ip = "172.17.8.#{i+100}"
       config.vm.network :private_network, ip: ip
-
-      # Uncomment below to enable NFS for sharing the host machine into the coreos-vagrant VM.
-      config.vm.synced_folder "/Users/calaniz", "/home/calaniz", id: "calaniz", :nfs => true, :mount_options => ['nolock,vers=3,udp']
 
       if $share_home
         config.vm.synced_folder ENV['HOME'], ENV['HOME'], id: "home", :nfs => true, :mount_options => ['nolock,vers=3,udp']
